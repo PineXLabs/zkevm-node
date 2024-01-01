@@ -4,8 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygonzkevm"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"math"
 	"math/big"
+	"reflect"
 	"strings"
 	"time"
 
@@ -929,7 +933,8 @@ func (s *ClientSynchronizer) processSequenceBatches(sequencedBatches []etherman.
 			}
 			if uint64(forcedBatches[0].ForcedAt.Unix()) != sbatch.MinForcedTimestamp ||
 				forcedBatches[0].GlobalExitRoot != sbatch.GlobalExitRoot ||
-				common.Bytes2Hex(forcedBatches[0].RawTxsData) != common.Bytes2Hex(sbatch.Transactions) {
+				(polygonzkevm.RollupMode == "validium" && reflect.DeepEqual(crypto.Keccak256Hash(forcedBatches[0].RawTxsData), sbatch.TransactionsHash) ||
+					(polygonzkevm.RollupMode != "validium" && common.Bytes2Hex(forcedBatches[0].RawTxsData) != common.Bytes2Hex(sbatch.Transactions))) {
 				log.Warnf("ForcedBatch stored: %+v. RawTxsData: %s", forcedBatches, common.Bytes2Hex(forcedBatches[0].RawTxsData))
 				log.Warnf("ForcedBatch sequenced received: %+v. RawTxsData: %s", sbatch, common.Bytes2Hex(sbatch.Transactions))
 				log.Errorf("error: forcedBatch received doesn't match with the next expected forcedBatch stored in db. Expected: %+v, Synced: %+v", forcedBatches, sbatch)
@@ -959,6 +964,15 @@ func (s *ClientSynchronizer) processSequenceBatches(sequencedBatches []etherman.
 		// First get trusted batch from db
 		tBatch, err := s.state.GetBatchByNumber(s.ctx, batch.BatchNumber, dbTx)
 		if err != nil {
+			if polygonzkevm.RollupMode == "validium" {
+				log.Errorf("error getting trusted batch. BatchNumber: %d", batch.BatchNumber)
+				rollbackErr := dbTx.Rollback(s.ctx)
+				if rollbackErr != nil {
+					log.Errorf("error rolling back state. BatchNumber: %d, BlockNumber: %d, rollbackErr: %v", batch.BatchNumber, blockNumber, rollbackErr)
+					return rollbackErr
+				}
+				return err
+			}
 			if errors.Is(err, state.ErrNotFound) {
 				log.Debugf("BatchNumber: %d, not found in trusted state. Storing it...", batch.BatchNumber)
 				// If it is not found, store batch
@@ -989,6 +1003,15 @@ func (s *ClientSynchronizer) processSequenceBatches(sequencedBatches []etherman.
 				return err
 			}
 		} else {
+			if polygonzkevm.RollupMode == "validium" {
+				log.Debugf("detected transactionsHash %s", hexutil.Encode(sbatch.TransactionsHash[:]))
+				if !reflect.DeepEqual(crypto.Keccak256Hash(tBatch.BatchL2Data).String(), hexutil.Encode(sbatch.TransactionsHash[:])) {
+					log.Info("L1 BatchL2DataHash matches the calculated result. BatchNumber: %d", batch.BatchNumber)
+					return fmt.Errorf("error: batch received doesn't match with the next expected batch stored in db. Expected: %+v, Synced: %+v", tBatch, sbatch)
+				}
+				batch.BatchL2Data = tBatch.BatchL2Data
+			}
+
 			// Reprocess batch to compare the stateRoot with tBatch.StateRoot and get accInputHash
 			p, err := s.state.ExecuteBatch(s.ctx, batch, false, dbTx)
 			if err != nil {

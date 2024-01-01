@@ -37,6 +37,20 @@ type Batch struct {
 	ForcedBatchNum *uint64
 }
 
+// Validium Batch struct
+type ValidiumBatch struct {
+	BatchNumber      uint64
+	Coinbase         common.Address
+	BatchL2Data      []byte
+	StateRoot        common.Hash
+	LocalExitRoot    common.Hash
+	AccInputHash     common.Hash
+	Timestamp        time.Time
+	TransactionsHash [32]byte
+	GlobalExitRoot   common.Hash
+	ForcedBatchNum   *uint64
+}
+
 // ProcessingContext is the necessary data that a batch needs to provide to the runtime,
 // without the historical state data (processing receipt from previous batch)
 type ProcessingContext struct {
