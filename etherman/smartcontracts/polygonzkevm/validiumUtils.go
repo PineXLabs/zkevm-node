@@ -18,14 +18,14 @@ func convert2ValidiumBatchData(batches []PolygonZkEVMBatchData) []PolygonZkEVMBa
 	return Validiumbatches
 }
 
-func convert2ValidiumForcedBatchData(forceBatches []PolygonZkEVMForcedBatchData) []PolygonZkEVMForcedBatchDataValidium {
-	var Validiumbatches []PolygonZkEVMForcedBatchDataValidium
-	for _, forceBatch := range forceBatches {
-		Validiumbatches = append(Validiumbatches, PolygonZkEVMForcedBatchDataValidium{
-			TransactionsHash:   crypto.Keccak256Hash(forceBatch.Transactions),
-			GlobalExitRoot:     forceBatch.GlobalExitRoot,
-			MinForcedTimestamp: forceBatch.MinForcedTimestamp,
-		})
-	}
-	return Validiumbatches
-}
+//func convert2ValidiumForcedBatchData(forceBatches []PolygonZkEVMForcedBatchData) []PolygonZkEVMForcedBatchDataValidium {
+//	var Validiumbatches []PolygonZkEVMForcedBatchDataValidium
+//	for _, forceBatch := range forceBatches {
+//		Validiumbatches = append(Validiumbatches, PolygonZkEVMForcedBatchDataValidium{
+//			TransactionsHash:   crypto.Keccak256Hash(forceBatch.Transactions),
+//			GlobalExitRoot:     forceBatch.GlobalExitRoot,
+//			MinForcedTimestamp: forceBatch.MinForcedTimestamp,
+//		})
+//	}
+//	return Validiumbatches
+//}

@@ -54,11 +54,11 @@ type PolygonZkEVMForcedBatchData struct {
 }
 
 // PolygonZkEVMForcedBatchDataValidium is an auto generated low-level Go binding around an user-defined struct under validium mode.
-type PolygonZkEVMForcedBatchDataValidium struct {
-	TransactionsHash   [32]byte
-	GlobalExitRoot     [32]byte
-	MinForcedTimestamp uint64
-}
+//type PolygonZkEVMForcedBatchDataValidium struct {
+//	TransactionsHash   [32]byte
+//	GlobalExitRoot     [32]byte
+//	MinForcedTimestamp uint64
+//}
 
 // PolygonZkEVMInitializePackedParameters is an auto generated low-level Go binding around an user-defined struct.
 type PolygonZkEVMInitializePackedParameters struct {
@@ -1703,9 +1703,9 @@ func (_Polygonzkevm *PolygonzkevmTransactorSession) SequenceBatches(batches []Po
 //
 // Solidity: function sequenceForceBatches((bytes,bytes32,uint64)[] batches) returns()
 func (_Polygonzkevm *PolygonzkevmTransactor) SequenceForceBatches(opts *bind.TransactOpts, batches []PolygonZkEVMForcedBatchData) (*types.Transaction, error) {
-	if RollupMode == "validium" {
-		return _Polygonzkevm.contract.Transact(opts, "sequenceForceBatches", convert2ValidiumForcedBatchData(batches))
-	}
+	//if RollupMode == "validium" {
+	//	return _Polygonzkevm.contract.Transact(opts, "sequenceForceBatches", convert2ValidiumForcedBatchData(batches))
+	//}
 	return _Polygonzkevm.contract.Transact(opts, "sequenceForceBatches", batches)
 }
 
